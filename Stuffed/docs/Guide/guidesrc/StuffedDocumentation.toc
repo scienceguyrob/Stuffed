@@ -1,0 +1,22 @@
+\contentsline {section}{\numberline {1}Acknowledgements}{3}
+\contentsline {section}{\numberline {2}System Requirements}{3}
+\contentsline {section}{\numberline {3}Key features}{3}
+\contentsline {section}{\numberline {4}Usage}{4}
+\contentsline {subsection}{\numberline {4.1}Testing \& Evaluation}{6}
+\contentsline {subsubsection}{\numberline {4.1.1}Static Tests}{6}
+\contentsline {subsubsection}{\numberline {4.1.2}Stream Tests}{6}
+\contentsline {section}{\numberline {5}Compatible Data}{7}
+\contentsline {subsection}{\numberline {5.1}ARFF Format}{7}
+\contentsline {subsection}{\numberline {5.2}CSV Format}{8}
+\contentsline {subsection}{\numberline {5.3}Supplied Data}{8}
+\contentsline {section}{\numberline {6}Design}{8}
+\contentsline {subsection}{\numberline {6.1}Overview}{8}
+\contentsline {subsection}{\numberline {6.2}Reason for Developing the API}{9}
+\contentsline {subsection}{\numberline {6.3}API Requirements}{10}
+\contentsline {subsection}{\numberline {6.4}Data Pre-processing \& Meta data Creation}{12}
+\contentsline {subsubsection}{\numberline {6.4.1}Meta data for Evaluation}{12}
+\contentsline {subsubsection}{\numberline {6.4.2}Meta data for Sampling}{15}
+\contentsline {subsection}{\numberline {6.5}Sampling}{16}
+\contentsline {subsubsection}{\numberline {6.5.1}Sampling Foundation}{16}
+\contentsline {subsubsection}{\numberline {6.5.2}Sampling Algorithm}{19}
+\contentsline {subsection}{\numberline {6.6}Evaluation}{24}

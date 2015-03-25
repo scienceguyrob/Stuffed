@@ -1,0 +1,47 @@
+\begin{thebibliography}{10}
+
+\bibitem{Lyon:2013:jk}
+R.~J. Lyon, J.~D. Knowles, J.~M. Brooke, and B.~W. Stappers, ``{A Study on
+  Classification in Imbalanced and Partially-Labelled Data Streams}'', in {\em
+  Simple and Effective Machine Learning for Big Data, Special Session, IEEE
+  International Conference on Systems, Man, and Cybernetics}, SMC '13,
+  pp.~1506--1511, IEEE, Manchester, United Kingdom, October 2013.
+
+\bibitem{Lyon:2014:jk}
+R.~J. Lyon, J.~D. Knowles, J.~M. Brooke, and B.~W. Stappers, ``{Hellinger
+  Distance Trees for Imbalanced Streams}'', in {\em 22nd IEEE International
+  Conference on Pattern Recognition}, ICPR '14, pp.~1969--1974, IEEE,
+  Stockholm, Sweden, August 2014.
+
+\bibitem{Moa:2011:ba}
+A.~Bifet, G.~Holmes, R.~Kirkby, and B.~Pfahringer, ``{Data stream mining: a
+  practical approach}'', tech. rep., The University of Waikato, May 2011.
+
+\bibitem{weka}
+{The University of Waikato}, ``Weka 3: Data mining software in java.'' World
+  Wide Web Accessed (12/10/2012), \newline
+  \url{http://www.cs.waikato.ac.nz/ml/weka/}, 2013.
+
+\bibitem{moamanual}
+{The University of Waikato}, ``{Massive Online Analysis Manual}.'' World Wide
+  Web Accessed (12/10/2012), \newline
+  \url{http://www.cs.waikato.ac.nz/~abifet/MOA/Manual.pdf}, August 2009.
+
+\bibitem{Lichman:2013}
+{Lichman} M., ``{UCI} machine learning repository'', 2013.
+
+\bibitem{Bhatt:2013:ad}
+{Bhatt} R. and {Dhall} A., ``Skin segmentation dataset'', 2013.
+
+\bibitem{Roe:2013:bb}
+{Roe} B., ``Miniboone particle identification data set'', 2013.
+
+\bibitem{Savicky:2013:rb}
+{Savicky} P. and {Bock}~R. K., ``Magic gamma telescope data set'', 2013.
+
+\bibitem{Haibo:2009:fb}
+H.~He and E.~Garcia, ``{Learning from Imbalanced Data}'', {\em Knowledge and
+  Data Engineering, IEEE Transactions on}, vol.~21, no.~9, pp.~1263--1284,
+  2009.
+
+\end{thebibliography}
