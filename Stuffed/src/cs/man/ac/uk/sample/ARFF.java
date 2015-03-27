@@ -167,4 +167,16 @@ public class ARFF extends BaseFile
 		else
 			return false;
 	}
+	
+	/* (non-Javadoc)
+	 * @see cs.man.ac.uk.sample.BaseFile#shuffleDataset(java.lang.String)
+	 */
+	@Override
+	public boolean shuffleDataset(String pth)
+	{ 
+		if(preprocessed)
+			return editor.shuffle(pth);
+		else
+			return false;
+	}
 }

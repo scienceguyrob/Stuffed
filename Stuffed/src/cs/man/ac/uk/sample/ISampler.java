@@ -112,6 +112,13 @@ public interface ISampler
 	public boolean load(String path,int classIndex);
 	
 	/**
+	 * Shuffles the data set, and saves it to the output path.
+	 * @param outputPath the path to save the shuffled data to.
+	 * @return true if shuffled and saved successfully, else false.
+	 */
+	public boolean shuffle(String outputPath);
+	
+	/**
 	 * Samples the file and writes the sampled output to training and test
 	 * set files in CSV format.
 	 * 

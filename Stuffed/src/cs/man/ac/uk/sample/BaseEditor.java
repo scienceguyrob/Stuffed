@@ -286,6 +286,83 @@ public class BaseEditor implements IEditor
 		else{ return false; }
 	}
 
+
+	/* (non-Javadoc)
+	 * @see cs.man.ac.uk.sample.IEditor#shuffle(java.lang.String)
+	 */
+	@Override
+	public boolean shuffle(String pth)
+	{
+		Vector<String> lines = new Vector<String>();
+
+		//Firstly try to read the file
+		File file = new File(this.pfile.getPath());
+
+		//if the file exists
+		if(file.exists())
+		{
+			// Variables used to store the line of the being read
+			// using the input stream, and an array list to store the input
+			// patterns into.
+			String line = "";
+
+			// Read the file and display it line by line. 
+			BufferedReader in = null;
+
+			try
+			{
+				//open stream to file
+				in = new BufferedReader(new FileReader(file));
+
+				try
+				{   
+					while ((line = in.readLine()) != null)
+					{
+						if(line.startsWith("%") | line.startsWith(" "))// Ignore these		
+							Writer.append(pth,line+"\n");
+						else if(line.startsWith("@RELATION")| line.startsWith("@relation"))
+							Writer.append(pth,line+"\n\n");
+						else if(line.startsWith("@ATTRIBUTE") | line.startsWith("@attribute"))			
+							Writer.append(pth,line+"\n");
+						else if(line.startsWith("@DATA")| line.startsWith("@data"))
+							Writer.append(pth,"\n"+line+"\n");
+						else if(!Strings.isNullOrEmptyString(line)) // The data.
+							lines.add(line);
+
+						else continue;
+					}
+
+					Collections.shuffle(lines);
+
+					StringBuffer buffer = new StringBuffer();
+					int writeCounter = 0;
+
+					for(int i = 0; i< lines.size();i++)
+					{
+						buffer.append(lines.elementAt(i)+"\n");
+						writeCounter++;
+
+						if(writeCounter% 50 == 0)
+						{
+							Writer.append(pth, buffer.toString());
+							buffer.setLength(0);
+							writeCounter=0;
+						}
+					}
+
+					if(writeCounter > 0)
+						Writer.append(pth, buffer.toString());
+
+					return true;
+				}
+				catch(IOException e){return false;}
+				finally{in.close();}
+			}
+			catch (Exception e) { return false; }
+		}
+		else{ return false; }
+	}
+	
 	/* (non-Javadoc)
 	 * @see cs.man.ac.uk.sample.IEditor#createMetaDataBinary()
 	 */

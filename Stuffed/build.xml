@@ -92,7 +92,6 @@
 			<fileset dir="${src.dir}">
 				<include name="**/*.java" />
 			</fileset>
-			<zipgroupfileset dir="lib" includes="*.jar" excludes="*.config" />
 			<zipfileset dir="${resources.dir}" includes="**/*.jar" prefix="lib" />
 			<manifest>
 				<attribute name="Main-Class" value="moa.gui.GUI" />

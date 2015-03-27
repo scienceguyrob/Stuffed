@@ -53,6 +53,16 @@ public interface IEditor
 	 * @return true if shuffled successfully, else false.
 	 */
 	public boolean shuffle();
+	
+	/**
+	 * Shuffles the rows of data within a file, however caution should be be used
+	 * with this method. Large files may take a long time to shuffle, and may use
+	 * up a great deal of RAM - this method has to load a file into memory to perform
+	 * the shuffle.
+	 * @param path the path to save the shuffled data to.
+	 * @return true if shuffled successfully, else false.
+	 */
+	public boolean shuffle(String path);
 
 	/**
 	 * <P>Creates meta data this data file. Meta data contain extra information about the

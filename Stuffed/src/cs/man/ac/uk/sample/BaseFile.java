@@ -329,6 +329,12 @@ public class BaseFile implements IFile
 	 */
 	@Override
 	public boolean shuffleDataset(){ return false;}
+	
+	/* (non-Javadoc)
+	 * @see cs.man.ac.uk.sample.IFile#shuffleDataset(java.lang.String)
+	 */
+	@Override
+	public boolean shuffleDataset(String pth){ return false;}
 
 	/* (non-Javadoc)
 	 * @see cs.man.ac.uk.sample.IFile#log(java.lang.String)

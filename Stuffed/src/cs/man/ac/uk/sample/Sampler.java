@@ -279,4 +279,19 @@ public class Sampler implements ISampler
 		else
 			return new Object[]{false,"File not initialised"};
 	}
+
+	/**
+	 * Shuffles the data set, and saves it to the output path.
+	 * @param outputPath the path to save the shuffled data to.
+	 * @return true if shuffled and saved successfully, else false.
+	 */
+	@Override
+	public boolean shuffle(String outputPath)
+	{
+		if(file!=null)
+			return file.shuffleDataset(outputPath);
+		else
+			return false;
+	}
+
 }

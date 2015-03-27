@@ -308,6 +308,13 @@ public interface IFile
 	public boolean shuffleDataset();
 	
 	/**
+	 * Shuffles the data in the file so that it obtains a random reordering.
+	 * @param pth the path to write the shuffled data to.
+	 * @return true if the file was shuffled successfully, else false.
+	 */
+	public boolean shuffleDataset(String pth);
+	
+	/**
 	 * @return true if the file could be read and understood, else false.
 	 */
 	public boolean preprocess();
