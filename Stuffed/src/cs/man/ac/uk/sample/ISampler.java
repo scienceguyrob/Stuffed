@@ -159,4 +159,23 @@ public interface ISampler
 	 *             if the sampling failed for some reason.
 	 */
 	public Object[] sampleToARFF(String trainSetPath,String testSetPath,int negTrainSamples,int posTrainSamples,double trainSetBalance,double testSetBalance,double labelling);
+	
+	/**
+	 * Gets the path to the positive meta data belonging to the currently loaded file.
+	 * @return the path to the positive meta data belonging to the currently loaded file,
+	 *  else an empty string if the file is not loaded.
+	 */
+	public String getPathToPositiveMetaData();
+	
+	/**
+	 * Gets the path to the negative meta data belonging to the currently loaded file.
+	 * @return the path to the negative meta data belonging to the currently loaded file,
+	 *  else an empty string if the file is not loaded.
+	 */
+	public String getPathToNegativeMetaData();
+	
+	/**
+	 * @return true if the file is loaded (post meta data creation), else false.
+	 */
+	public boolean isLoaded();
 }

@@ -33,6 +33,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.util.TreeMap;
 
 import weka.classifiers.Classifier;
 import weka.classifiers.trees.J48;
@@ -112,16 +113,16 @@ public class StandardAlgorithmTester  extends WekaClassifier implements I_WekaTe
 
 		log.dualOut("Training "+name,1);
 		log.dualOut("Training set: " + this.trainingSetFilePath,1);
-		
+
 		long startTime = System.nanoTime();// Record time prior to training.
-		
+
 		try
 		{
 			BufferedReader reader = new BufferedReader( new FileReader(this.trainingSetFilePath));
 			Instances data = new Instances(reader);
-			
+
 			data.setClassIndex(data.numAttributes() - 1);// Uses last column of data as class index.
-			
+
 			log.dualOut("Training instances: " + data.numInstances(),1);
 			learner.buildClassifier(data);
 
@@ -129,8 +130,8 @@ public class StandardAlgorithmTester  extends WekaClassifier implements I_WekaTe
 			long endTime = System.nanoTime();
 			long nanoseconds = endTime - startTime;
 			double seconds = (double) nanoseconds / 1000000000.0;
-			
-			
+
+
 			log.dualOut("Training "+name+" completed in "+nanoseconds+" (ns) or "+seconds+" (s)",1);
 			return true;
 		}
@@ -143,10 +144,30 @@ public class StandardAlgorithmTester  extends WekaClassifier implements I_WekaTe
 	 */
 	@SuppressWarnings("unused")
 	@Override
-	public int[][] testStatic(String testSet,String outputPath, boolean recordMissclassifications)
+	public int[][] testStatic(String testSet,String outputPath, boolean recordMissclassifications,String posMetaData,String negMetaData)
 	{
 		// Store training set file path.
 		this.testSetFilePath=testSet;
+
+		/**
+		 * The positively labelled data.
+		 */
+		TreeMap<Integer,String> labelledPositives;
+
+		/**
+		 * Negatively labelled data.
+		 */
+		TreeMap<Integer,String> labelledNegatives;
+
+		if(posMetaData!= null)
+			labelledPositives = this.getMetaData(posMetaData);
+		else
+			labelledPositives = new TreeMap<Integer,String>();
+		
+		if(negMetaData!= null)
+			labelledNegatives = this.getMetaData(negMetaData);
+		else
+			labelledNegatives = new TreeMap<Integer,String>();
 
 		log.dualOut("Testing "+name,1);
 
@@ -183,27 +204,77 @@ public class StandardAlgorithmTester  extends WekaClassifier implements I_WekaTe
 				double classification = learner.classifyInstance(data.instance(i));
 				String instanceClass= Double.toString(data.instance(i).classValue());
 
-				// LABELLED TEST DATA - WEKA API knows the correct class.				
-				if(classification==1 && instanceClass.startsWith("0"))// Predicted positive, actually negative
-				{	
-					stats.incrementFP();
-					misclassifiedLabelledInstances.append(getFeatures(data.instance(i),data.numAttributes()-1)+"0,FP\n");
-				}
-				else if(classification==1 && instanceClass.startsWith("1"))// Predicted positive, actually positive
+				if(instanceClass.contains("NaN"))// UNLABELLED TEST DATA - MOA does not know what the correct class is!
 				{
-					correctPositiveClassifications+=1;
-					stats.incrementTP();
+					// If the current instance is on the list of POSITIVELY
+					// labelled examples.
+					if(labelledPositives.containsKey(instanceNumber))
+					{
+						if(classification==1)
+						{
+							correctPositiveClassifications+=1;
+							stats.incrementTP();
+						}
+						else if(classification==0)
+						{
+							stats.incrementFN();
+							misclassifiedLabelledInstances.append(getFeatures(data.instance(i),data.numAttributes()-1)+"1,FN\n");
+						}
+					}
+					// If the current instance is on the list of NEGATIVELY
+					// labelled examples.
+					else if(labelledNegatives.containsKey(instanceNumber))
+					{					
+						if(classification==1)
+						{
+							stats.incrementFP();
+							misclassifiedLabelledInstances.append(getFeatures(data.instance(i),data.numAttributes()-1)+"0,FP\n");
+						}
+						else if(classification==0)
+						{
+							correctNegativeClassifications+=1;
+							stats.incrementTN();
+						}
+					}
+					else // THEN THIS DATA IS ALMOST CERTAINLY NEGATIVE.
+					{
+						if(classification==1)
+						{
+							stats.incrementFP();
+							misclassifiedLabelledInstances.append(getFeatures(data.instance(i),data.numAttributes()-1)+"0,FP\n");
+						}
+						else if(classification==0)
+						{
+							correctNegativeClassifications+=1;
+							stats.incrementTN();
+						}
+					}
 				}
-				else if(classification==0 && instanceClass.startsWith("1"))// Predicted negative, actually positive
-				{	
-					stats.incrementFN();
-					misclassifiedLabelledInstances.append(getFeatures(data.instance(i),data.numAttributes()-1)+"1,FN\n");
-				}
-				else if(classification==0 && instanceClass.startsWith("0"))// Predicted negative, actually negative
+				else
 				{
-					correctNegativeClassifications+=1;
-					stats.incrementTN();
-				}	
+
+					// LABELLED TEST DATA - WEKA API knows the correct class.				
+					if(classification==1 && instanceClass.startsWith("0"))// Predicted positive, actually negative
+					{	
+						stats.incrementFP();
+						misclassifiedLabelledInstances.append(getFeatures(data.instance(i),data.numAttributes()-1)+"0,FP\n");
+					}
+					else if(classification==1 && instanceClass.startsWith("1"))// Predicted positive, actually positive
+					{
+						correctPositiveClassifications+=1;
+						stats.incrementTP();
+					}
+					else if(classification==0 && instanceClass.startsWith("1"))// Predicted negative, actually positive
+					{	
+						stats.incrementFN();
+						misclassifiedLabelledInstances.append(getFeatures(data.instance(i),data.numAttributes()-1)+"1,FN\n");
+					}
+					else if(classification==0 && instanceClass.startsWith("0"))// Predicted negative, actually negative
+					{
+						correctNegativeClassifications+=1;
+						stats.incrementTN();
+					}
+				}
 			}
 
 			long endTime = System.nanoTime();
@@ -225,7 +296,7 @@ public class StandardAlgorithmTester  extends WekaClassifier implements I_WekaTe
 				{
 					// Get file extension of output file.
 					extension = outputPath.substring(i,outputPath.length());
-					
+
 					// Create the path to a new file to write miss-classified instances to,
 					// in ARFF format.
 					String timestamp = Common.getCondensedTime("_")+"_"+Common.getDateWithSeperator("_");
@@ -248,10 +319,30 @@ public class StandardAlgorithmTester  extends WekaClassifier implements I_WekaTe
 	 */
 	@SuppressWarnings("unused")
 	@Override
-	public int[][] testStatic(String testSet,String outputPath)
+	public int[][] testStatic(String testSet,String outputPath,String posMetaData,String negMetaData)
 	{
 		// Store training set file path.
 		this.testSetFilePath=testSet;
+
+		/**
+		 * The positively labelled data.
+		 */
+		TreeMap<Integer,String> labelledPositives;
+
+		/**
+		 * Negatively labelled data.
+		 */
+		TreeMap<Integer,String> labelledNegatives;
+
+		if(posMetaData!= null)
+			labelledPositives = this.getMetaData(posMetaData);
+		else
+			labelledPositives = new TreeMap<Integer,String>();
+		
+		if(negMetaData!= null)
+			labelledNegatives = this.getMetaData(negMetaData);
+		else
+			labelledNegatives = new TreeMap<Integer,String>();
 
 		log.dualOut("Testing " + name,1);
 
@@ -285,25 +376,68 @@ public class StandardAlgorithmTester  extends WekaClassifier implements I_WekaTe
 				double classification = learner.classifyInstance(data.instance(i));
 				String instanceClass= Double.toString(data.instance(i).classValue());
 
-				// LABELLED TEST DATA - WEKA API knows the correct class.				
-				if(classification==1 && instanceClass.startsWith("0"))// Predicted positive, actually negative
-				{	
-					stats.incrementFP();
-				}
-				else if(classification==1 && instanceClass.startsWith("1"))// Predicted positive, actually positive
+				if(instanceClass.contains("NaN"))// UNLABELLED TEST DATA - MOA does not know what the correct class is!
 				{
-					correctPositiveClassifications+=1;
-					stats.incrementTP();
+					// If the current instance is on the list of POSITIVELY
+					// labelled examples.
+					if(labelledPositives.containsKey(instanceNumber))
+					{
+						if(classification==1)
+						{
+							correctPositiveClassifications+=1;
+							stats.incrementTP();
+						}
+						else if(classification==0)
+						{
+							stats.incrementFN();
+						}
+					}
+					// If the current instance is on the list of NEGATIVELY
+					// labelled examples.
+					else if(labelledNegatives.containsKey(instanceNumber))
+					{					
+						if(classification==1)
+							stats.incrementFP();
+						else if(classification==0)
+						{
+							correctNegativeClassifications+=1;
+							stats.incrementTN();
+						}
+					}
+					else // THEN THIS DATA IS ALMOST CERTAINLY NEGATIVE.
+					{
+						if(classification==1)
+							stats.incrementFP();
+						else if(classification==0)
+						{
+							correctNegativeClassifications+=1;
+							stats.incrementTN();
+						}
+					}
 				}
-				else if(classification==0 && instanceClass.startsWith("1"))// Predicted negative, actually positive
-				{	
-					stats.incrementFN();
-				}
-				else if(classification==0 && instanceClass.startsWith("0"))// Predicted negative, actually negative
+				else
 				{
-					correctNegativeClassifications+=1;
-					stats.incrementTN();
-				}	
+
+					// LABELLED TEST DATA - WEKA API knows the correct class.				
+					if(classification==1 && instanceClass.startsWith("0"))// Predicted positive, actually negative
+					{	
+						stats.incrementFP();
+					}
+					else if(classification==1 && instanceClass.startsWith("1"))// Predicted positive, actually positive
+					{
+						correctPositiveClassifications+=1;
+						stats.incrementTP();
+					}
+					else if(classification==0 && instanceClass.startsWith("1"))// Predicted negative, actually positive
+					{	
+						stats.incrementFN();
+					}
+					else if(classification==0 && instanceClass.startsWith("0"))// Predicted negative, actually negative
+					{
+						correctNegativeClassifications+=1;
+						stats.incrementTN();
+					}	
+				}
 			}
 
 			// Record time classification completed.
@@ -354,10 +488,10 @@ public class StandardAlgorithmTester  extends WekaClassifier implements I_WekaTe
 
 			// Used to store predictions.
 			StringBuilder predictions = new StringBuilder();
-			
+
 			// Produce an ARFF file header for output predictions.
 			ProducePredictionsARFFHeader(predictionsPath,data.numAttributes());
-			
+
 			long startTime = System.nanoTime();
 
 			// label instances
@@ -380,7 +514,7 @@ public class StandardAlgorithmTester  extends WekaClassifier implements I_WekaTe
 					predictions.append(getFeatures(data.instance(i),data.numAttributes()-1)+"0\n");
 					negativeClassifications++;
 				}
-				
+
 				// Write buffer to file.
 				if(predictions.length()>10000)
 				{
@@ -392,7 +526,7 @@ public class StandardAlgorithmTester  extends WekaClassifier implements I_WekaTe
 			// Empty buffer.
 			if(predictions.length()>0)
 				Writer.append(outputPath, predictions.toString());
-			
+
 			// Report details.
 			long endTime = System.nanoTime();
 			long duration = endTime - startTime;
@@ -431,7 +565,7 @@ public class StandardAlgorithmTester  extends WekaClassifier implements I_WekaTe
 			return false;
 		}
 	}
-	
+
 	/**
 	 * Saves the classifier model to the path specified.
 	 * @param path the path to save the classifier model to.

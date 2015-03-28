@@ -132,24 +132,27 @@ public class ClassifierBuilder
 	
 	/**
 	 * Builds and tests the classifier specified by the algorithm variable.
+	 * Note if no unlabelled data is in the test set, then meta data can be set to null.
+	 * @param posMetaData the positive meta data used to evaluate class predictions on unlabelled examples.
+	 * @param negMetaData the negative meta data used to evaluate class predictions on unlabelled examples.
 	 * @return confusion matrix describing binary classification outcomes.
 	 */
-	public  int[][] test()
+	public  int[][] test(String posMetaData,String negMetaData)
 	{
 		switch (algorithm)
 		{
 			case Classifiers.J48:
-				return stdloadAndTest(new StandardAlgorithmTester(this.outputFile,"J48",this.verbose,new J48())); 
+				return stdloadAndTest(new StandardAlgorithmTester(this.outputFile,"J48",this.verbose,new J48()),posMetaData,negMetaData); 
 			case Classifiers.MLP:
-				return stdloadAndTest(new StandardAlgorithmTester(this.outputFile,"MLP",this.verbose,new MultilayerPerceptron())); 
+				return stdloadAndTest(new StandardAlgorithmTester(this.outputFile,"MLP",this.verbose,new MultilayerPerceptron()),posMetaData,negMetaData); 
 			case Classifiers.NB:
-				return stdloadAndTest(new StandardAlgorithmTester(this.outputFile,"NB",this.verbose,new NaiveBayes())); 
+				return stdloadAndTest(new StandardAlgorithmTester(this.outputFile,"NB",this.verbose,new NaiveBayes()),posMetaData,negMetaData); 
 			case Classifiers.SVM:
-				return stdloadAndTest(new StandardAlgorithmTester(this.outputFile,"SVM",this.verbose,new SMO())); 
+				return stdloadAndTest(new StandardAlgorithmTester(this.outputFile,"SVM",this.verbose,new SMO()),posMetaData,negMetaData); 
 			case Classifiers.HTREE:
-				return streamloadAndTest(new StreamAlgorithmTester(this.outputFile,"HoeffdingTree",this.verbose,new HoeffdingTree()));
+				return streamloadAndTest(new StreamAlgorithmTester(this.outputFile,"HoeffdingTree",this.verbose,new HoeffdingTree()),posMetaData,negMetaData);
 			case Classifiers.GHVFDT:
-				return streamloadAndTest(new StreamAlgorithmTester(this.outputFile,"GHVFDT",this.verbose,new GHVFDT()));  
+				return streamloadAndTest(new StreamAlgorithmTester(this.outputFile,"GHVFDT",this.verbose,new GHVFDT()),posMetaData,negMetaData);  
 			default:
 				int[][] confusion_matrix = {{0,0},{0,0}};
 				return confusion_matrix;
@@ -159,13 +162,15 @@ public class ClassifierBuilder
 	/**
 	 * Trains and tests the supplied classifier, standard static learning scenario.
 	 * @param classifier the classifier to train and test.
+	 * @param posMetaData the positive meta data used to evaluate class predictions on unlabelled examples.
+	 * @param negMetaData the negative meta data used to evaluate class predictions on unlabelled examples.
 	 * @return true if trained and tested successfully, else false.
 	 */
-	private int[][] stdloadAndTest(StandardAlgorithmTester classifier)
+	private int[][] stdloadAndTest(StandardAlgorithmTester classifier,String posMetaData,String negMetaData)
 	{
 		classifier.train(trainingSet);
 		
-		int[][] confusionMatrix = classifier.testStatic(testSet,this.outputFile);
+		int[][] confusionMatrix = classifier.testStatic(testSet,this.outputFile,posMetaData,negMetaData);
 		
 		return confusionMatrix;
 	}
@@ -173,13 +178,15 @@ public class ClassifierBuilder
 	/**
 	 * Trains and tests the supplied classifier, in a streaming data scenario.
 	 * @param classifier the classifier to train and test.
+	 * @param posMetaData the positive meta data used to evaluate class predictions on unlabelled examples.
+	 * @param negMetaData the negative meta data used to evaluate class predictions on unlabelled examples.
 	 * @return true if trained and tested successfully, else false.
 	 */
-	private int[][] streamloadAndTest(StreamAlgorithmTester classifier)
+	private int[][] streamloadAndTest(StreamAlgorithmTester classifier,String posMetaData,String negMetaData)
 	{
 		classifier.train(trainingSet);
 		
-		int[][] confusionMatrix = classifier.testStream(testSet,this.outputFile);
+		int[][] confusionMatrix = classifier.testStream(testSet,this.outputFile,posMetaData,negMetaData);
 		
 		return confusionMatrix;
 	}

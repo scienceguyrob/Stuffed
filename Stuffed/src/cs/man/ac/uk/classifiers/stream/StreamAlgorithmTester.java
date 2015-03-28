@@ -171,11 +171,32 @@ public class StreamAlgorithmTester  extends MOAClassifier implements I_WekaTest
 	 */
 	@SuppressWarnings("unused")
 	@Override
-	public int[][] testStatic(String testSet,String outputPath, boolean recordMissclassifications)
+	public int[][] testStatic(String testSet,String outputPath, boolean recordMissclassifications,String posMetaData,String negMetaData)
 	{
 		try
 		{
 			this.testSetFilePath=testSet;
+
+			/**
+			 * The positively labelled data.
+			 */
+			TreeMap<Integer,String> labelledPositives;
+
+			/**
+			 * Negatively labelled data.
+			 */
+			TreeMap<Integer,String> labelledNegatives;
+
+			if(posMetaData!= null)
+				labelledPositives = this.getMetaData(posMetaData);
+			else
+				labelledPositives = new TreeMap<Integer,String>();
+			
+			if(negMetaData!= null)
+				labelledNegatives = this.getMetaData(negMetaData);
+			else
+				labelledNegatives = new TreeMap<Integer,String>();
+
 			this.testStream = new ArffFileStream (this.testSetFilePath, -1);
 			this.testStream.prepareForUse();
 
@@ -200,12 +221,13 @@ public class StreamAlgorithmTester  extends MOAClassifier implements I_WekaTest
 			log.dualOut(name + " Testing on all instances available.",1);
 			log.dualOut("Test set: " + this.testSetFilePath,1);
 			log.dualOut("Test instances: " + data.numInstances(),1);
+			log.dualOut("Training examples already seen: " + learner.trainingWeightSeenByModel(),1);
 
 			learner.setModelContext (testStream.getHeader());
 			learner.prepareForUse();
 
 			long startTime = System.nanoTime();
-
+			int correct = 0;
 			while ( testStream.hasMoreInstances() )
 			{
 				Instance testInst = testStream.nextInstance(); 
@@ -213,33 +235,87 @@ public class StreamAlgorithmTester  extends MOAClassifier implements I_WekaTest
 
 				String instanceClass= Double.toString(testInst.classValue());
 
+				if(learner.correctlyClassifies(testInst))
+					correct++;
+
 				double[] votes = learner.getVotesForInstance(testInst);
 				int classification = Utils.maxIndex(votes);
 
-				// LABELLED TEST DATA - MOA knows the correct class.				
-				if(classification==1 && instanceClass.startsWith("0"))// Predicted positive, actually negative
-				{	
-					stats.incrementFP();
-					misclassifiedLabelledInstances.append(getFeatures(testInst,data.numAttributes()-1)+"0,FP\n");
-				}
-				else if(classification==1 && instanceClass.startsWith("1"))// Predicted positive, actually positive
+				if(instanceClass.contains("NaN"))// UNLABELLED TEST DATA - MOA does not know what the correct class is!
 				{
-					correctPositiveClassifications+=1;
-					stats.incrementTP();
+					// If the current instance is on the list of POSITIVELY
+					// labelled examples.
+					if(labelledPositives.containsKey(instanceNumber))
+					{
+						if(classification==1)
+						{
+							correctPositiveClassifications+=1;
+							stats.incrementTP();
+						}
+						else if(classification==0)
+						{
+							stats.incrementFN();
+							misclassifiedLabelledInstances.append(getFeatures(testInst,data.numAttributes()-1)+"1,FN\n");
+						}
+					}
+					// If the current instance is on the list of NEGATIVELY
+					// labelled examples.
+					else if(labelledNegatives.containsKey(instanceNumber))
+					{					
+						if(classification==1)
+						{
+							stats.incrementFP();
+							misclassifiedLabelledInstances.append(getFeatures(testInst,data.numAttributes()-1)+"0,FP\n");
+						}
+						else if(classification==0)
+						{
+							correctNegativeClassifications+=1;
+							stats.incrementTN();
+						}
+					}
+					else // THEN THIS DATA IS ALMOST CERTAINLY NEGATIVE.
+					{
+						if(classification==1)
+						{
+							stats.incrementFP();
+							misclassifiedLabelledInstances.append(getFeatures(testInst,data.numAttributes()-1)+"0,FP\n");
+						}
+						else if(classification==0)
+						{
+							correctNegativeClassifications+=1;
+							stats.incrementTN();
+						}
+					}
 				}
-				else if(classification==0 && instanceClass.startsWith("1"))// Predicted negative, actually positive
-				{	
-					stats.incrementFN();
-					misclassifiedLabelledInstances.append(getFeatures(testInst,data.numAttributes()-1)+"1,FN\n");
-				}
-				else if(classification==0 && instanceClass.startsWith("0"))// Predicted negative, actually negative
+				else
 				{
-					correctNegativeClassifications+=1;
-					stats.incrementTN();
-				}	
 
-				learner.trainOnInstance(testInst);
+					// LABELLED TEST DATA - MOA knows the correct class.				
+					if(classification==1 && instanceClass.startsWith("0"))// Predicted positive, actually negative
+					{	
+						stats.incrementFP();
+						misclassifiedLabelledInstances.append(getFeatures(testInst,data.numAttributes()-1)+"0,FP\n");
+					}
+					else if(classification==1 && instanceClass.startsWith("1"))// Predicted positive, actually positive
+					{
+						correctPositiveClassifications+=1;
+						stats.incrementTP();
+					}
+					else if(classification==0 && instanceClass.startsWith("1"))// Predicted negative, actually positive
+					{	
+						stats.incrementFN();
+						misclassifiedLabelledInstances.append(getFeatures(testInst,data.numAttributes()-1)+"1,FN\n");
+					}
+					else if(classification==0 && instanceClass.startsWith("0"))// Predicted negative, actually negative
+					{
+						correctNegativeClassifications+=1;
+						stats.incrementTN();
+					}	
+				}
 			}
+
+			double accuracy = 100.0 * (double) correct / (double) instanceNumber; 
+			log.dualOut(name+ " tested on " + instanceNumber + " instances & has "+accuracy+"% accuracy.",1);
 
 			long endTime = System.nanoTime();
 			long duration = endTime - startTime;
@@ -285,110 +361,12 @@ public class StreamAlgorithmTester  extends MOAClassifier implements I_WekaTest
 	 */
 	@SuppressWarnings("unused")
 	@Override
-	public int[][] testStatic(String testSet,String outputPath)
+	public int[][] testStatic(String testSet,String outputPath,String posMetaData,String negMetaData)
 	{
 		try
 		{
 			this.testSetFilePath = testSet;
-			this.testStream = new ArffFileStream (this.testSetFilePath, -1);
-			this.testStream.prepareForUse();
 
-			log.dualOut("Testing " + name,1);
-
-			// Test meta information and important variables.
-			int correctPositiveClassifications = 0;
-			int correctNegativeClassifications = 0;
-			int instanceNumber=0;
-
-			ClassifierStatistics stats = new ClassifierStatistics();
-
-			//Used to store and append output information.
-			StringBuilder misclassifiedLabelledInstances = new StringBuilder();
-
-			// Prepare data for testing
-			BufferedReader reader = new BufferedReader( new FileReader(this.testSetFilePath));
-			Instances data = new Instances(reader);
-			data.setClassIndex(data.numAttributes() - 1);
-
-			log.dualOut(name + " Classifier is ready.",1);
-			log.dualOut(name + " Testing on all instances available.",1);
-			log.dualOut("Test set: " + this.testSetFilePath,1);
-			log.dualOut("Test instances: " + data.numInstances(),1);
-
-			learner.setModelContext (testStream.getHeader());
-			learner.prepareForUse();
-
-			long startTime = System.nanoTime();
-
-			while ( testStream.hasMoreInstances() )
-			{
-				Instance testInst = testStream.nextInstance(); 
-				instanceNumber+=1;
-
-				String instanceClass= Double.toString(testInst.classValue());
-
-				double[] votes = learner.getVotesForInstance(testInst);
-				int classification = Utils.maxIndex(votes);
-
-				// LABELLED TEST DATA - MOA knows the correct class.				
-				if(classification==1 && instanceClass.startsWith("0"))// Predicted positive, actually negative
-				{	
-					stats.incrementFP();
-					misclassifiedLabelledInstances.append(getFeatures(testInst,data.numAttributes()-1)+"0,FP\n");
-				}
-				else if(classification==1 && instanceClass.startsWith("1"))// Predicted positive, actually positive
-				{
-					correctPositiveClassifications+=1;
-					stats.incrementTP();
-				}
-				else if(classification==0 && instanceClass.startsWith("1"))// Predicted negative, actually positive
-				{	
-					stats.incrementFN();
-					misclassifiedLabelledInstances.append(getFeatures(testInst,data.numAttributes()-1)+"1,FN\n");
-				}
-				else if(classification==0 && instanceClass.startsWith("0"))// Predicted negative, actually negative
-				{
-					correctNegativeClassifications+=1;
-					stats.incrementTN();
-				}	
-
-				learner.trainOnInstance(testInst);
-			}
-
-			long endTime = System.nanoTime();
-			long duration = endTime - startTime;
-			double seconds = (double) duration / 1000000000.0;
-
-			log.dualOut("Testing " + name + " completed in "+duration+" (ns) or "+seconds+" (s)",1);
-
-			return stats.toConfusionMatrix();
-		}
-		catch (Exception e) 
-		{ 
-			log.erroruf("Could not test " +name+ " classifier due to an error",e); 
-			return new int[][] {{0,0},{0,0}}; // Return empty matrix.
-		}
-	}
-
-
-	/**
-	 * This method performs a stream test (binary classification) , using data
-	 * created using the sampling classes in cs.man.au.sample. As such it expects
-	 * that each sampled data set be accompanied by a .positives and a .negatives 
-	 * file, which contain true class labels for the instances unlabelled in the
-	 * test set. This allows an evaluation on unlabelled data to be performed.
-	 * 
-	 * @param testSet the test set file to be used as a stream.
-	 * @param outputPath the file to write logging statements to.
-	 * @return a confusion matrix describing classifier performance.
-	 */
-	@SuppressWarnings("unused")
-	public int[][] testStream(String testSet,String outputPath)
-	{
-		try
-		{
-			this.testSetFilePath = testSet;
-			
 			/**
 			 * The positively labelled data.
 			 */
@@ -398,10 +376,17 @@ public class StreamAlgorithmTester  extends MOAClassifier implements I_WekaTest
 			 * Negatively labelled data.
 			 */
 			TreeMap<Integer,String> labelledNegatives;
+
+			if(posMetaData!= null)
+				labelledPositives = this.getMetaData(posMetaData);
+			else
+				labelledPositives = new TreeMap<Integer,String>();
 			
-			labelledPositives = this.getMetaData(this.testSetFilePath.replace(".arff", ".positives"));
-			labelledNegatives = this.getMetaData(this.testSetFilePath.replace(".arff", ".negatives"));
-			
+			if(negMetaData!= null)
+				labelledNegatives = this.getMetaData(negMetaData);
+			else
+				labelledNegatives = new TreeMap<Integer,String>();
+
 			this.testStream = new ArffFileStream (this.testSetFilePath, -1);
 			this.testStream.prepareForUse();
 
@@ -414,9 +399,6 @@ public class StreamAlgorithmTester  extends MOAClassifier implements I_WekaTest
 
 			ClassifierStatistics stats = new ClassifierStatistics();
 
-			//Used to store and append output information.
-			StringBuilder misclassifiedLabelledInstances = new StringBuilder();
-
 			// Prepare data for testing
 			BufferedReader reader = new BufferedReader( new FileReader(this.testSetFilePath));
 			Instances data = new Instances(reader);
@@ -426,11 +408,14 @@ public class StreamAlgorithmTester  extends MOAClassifier implements I_WekaTest
 			log.dualOut(name + " Testing on all instances available.",1);
 			log.dualOut("Test set: " + this.testSetFilePath,1);
 			log.dualOut("Test instances: " + data.numInstances(),1);
+			log.dualOut("Training examples already seen: " + learner.trainingWeightSeenByModel(),1);
 
 			learner.setModelContext (testStream.getHeader());
 			learner.prepareForUse();
 
 			long startTime = System.nanoTime();
+
+			int correct = 0;
 
 			while ( testStream.hasMoreInstances() )
 			{
@@ -438,6 +423,9 @@ public class StreamAlgorithmTester  extends MOAClassifier implements I_WekaTest
 				instanceNumber+=1;
 
 				String instanceClass= Double.toString(testInst.classValue());
+
+				if(learner.correctlyClassifies(testInst))
+					correct++;
 
 				double[] votes = learner.getVotesForInstance(testInst);
 				int classification = Utils.maxIndex(votes);
@@ -482,7 +470,175 @@ public class StreamAlgorithmTester  extends MOAClassifier implements I_WekaTest
 							stats.incrementTN();
 						}
 					}
-					
+				}
+				else
+				{
+					// LABELLED TEST DATA - MOA knows the correct class.				
+					if(classification==1 && instanceClass.startsWith("0"))// Predicted positive, actually negative
+					{	
+						stats.incrementFP();
+					}
+					else if(classification==1 && instanceClass.startsWith("1"))// Predicted positive, actually positive
+					{
+						correctPositiveClassifications+=1;
+						stats.incrementTP();
+					}
+					else if(classification==0 && instanceClass.startsWith("1"))// Predicted negative, actually positive
+					{	
+						stats.incrementFN();
+					}
+					else if(classification==0 && instanceClass.startsWith("0"))// Predicted negative, actually negative
+					{
+						correctNegativeClassifications+=1;
+						stats.incrementTN();
+					}	
+				}
+			}
+
+			double accuracy = 100.0 * (double) correct / (double) instanceNumber; 
+			log.dualOut(name+ " tested on " + instanceNumber + " instances & has "+accuracy+"% accuracy.",1);
+
+			long endTime = System.nanoTime();
+			long duration = endTime - startTime;
+			double seconds = (double) duration / 1000000000.0;
+
+			log.dualOut("Testing " + name + " completed in "+duration+" (ns) or "+seconds+" (s)",1);
+
+			return stats.toConfusionMatrix();
+		}
+		catch (Exception e) 
+		{ 
+			log.erroruf("Could not test " +name+ " classifier due to an error",e); 
+			return new int[][] {{0,0},{0,0}}; // Return empty matrix.
+		}
+	}
+
+
+	/**
+	 * This method performs a stream test (binary classification) , using data
+	 * created using the sampling classes in cs.man.au.sample. As such it expects
+	 * that each sampled data set be accompanied by a .positives and a .negatives 
+	 * file, which contain true class labels for the instances unlabelled in the
+	 * test set. This allows an evaluation on unlabelled data to be performed.
+	 * 
+	 * @param testSet the test set file to be used as a stream.
+	 * @param outputPath the file to write logging statements to.
+	 * @param posMetaData the positive meta data used to evaluate class predictions on unlabelled examples.
+	 * @param negMetaData the negative meta data used to evaluate class predictions on unlabelled examples.
+	 * @return a confusion matrix describing classifier performance.
+	 */
+	@SuppressWarnings("unused")
+	public int[][] testStream(String testSet,String outputPath,String posMetaData,String negMetaData)
+	{
+		try
+		{
+			this.testSetFilePath = testSet;
+
+			/**
+			 * The positively labelled data.
+			 */
+			TreeMap<Integer,String> labelledPositives;
+
+			/**
+			 * Negatively labelled data.
+			 */
+			TreeMap<Integer,String> labelledNegatives;
+
+			if(posMetaData!= null)
+				labelledPositives = this.getMetaData(posMetaData);
+			else
+				labelledPositives = new TreeMap<Integer,String>();
+			
+			if(negMetaData!= null)
+				labelledNegatives = this.getMetaData(negMetaData);
+			else
+				labelledNegatives = new TreeMap<Integer,String>();
+
+			this.testStream = new ArffFileStream (this.testSetFilePath, -1);
+			this.testStream.prepareForUse();
+
+			log.dualOut("Testing " + name,1);
+
+			// Test meta information and important variables.
+			int correctPositiveClassifications = 0;
+			int correctNegativeClassifications = 0;
+			int instanceNumber=0;
+
+			ClassifierStatistics stats = new ClassifierStatistics();
+
+			//Used to store and append output information.
+			StringBuilder misclassifiedLabelledInstances = new StringBuilder();
+
+			// Prepare data for testing
+			BufferedReader reader = new BufferedReader( new FileReader(this.testSetFilePath));
+			Instances data = new Instances(reader);
+			data.setClassIndex(data.numAttributes() - 1);
+
+			log.dualOut(name + " Classifier is ready.",1);
+			log.dualOut(name + " Testing on all instances available.",1);
+			log.dualOut("Test set: " + this.testSetFilePath,1);
+			log.dualOut("Test instances: " + data.numInstances(),1);
+			log.dualOut("Training examples already seen: " + learner.trainingWeightSeenByModel(),1); 
+
+			learner.setModelContext (testStream.getHeader());
+			learner.prepareForUse();
+
+			long startTime = System.nanoTime();
+			int correct = 0;
+			while ( testStream.hasMoreInstances() )
+			{
+				Instance testInst = testStream.nextInstance(); 
+				instanceNumber+=1;
+
+				String instanceClass= Double.toString(testInst.classValue());
+
+				if(learner.correctlyClassifies(testInst))
+					correct++;
+
+				double[] votes = learner.getVotesForInstance(testInst);
+				int classification = Utils.maxIndex(votes);
+
+				if(instanceClass.contains("NaN"))// UNLABELLED TEST DATA - MOA does not know what the correct class is!
+				{
+					// If the current instance is on the list of POSITIVELY
+					// labelled examples.
+					if(labelledPositives.containsKey(instanceNumber))
+					{
+						if(classification==1)
+						{
+							correctPositiveClassifications+=1;
+							stats.incrementTP();
+						}
+						else if(classification==0)
+						{
+							stats.incrementFN();
+						}
+					}
+					// If the current instance is on the list of NEGATIVELY
+					// labelled examples.
+					else if(labelledNegatives.containsKey(instanceNumber))
+					{					
+						if(classification==1)
+						{
+							stats.incrementFP();
+						}
+						else if(classification==0)
+						{
+							correctNegativeClassifications+=1;
+							stats.incrementTN();
+						}
+					}
+					else // THEN THIS DATA IS ALMOST CERTAINLY NEGATIVE.
+					{
+						if(classification==1)
+							stats.incrementFP();
+						else if(classification==0)
+						{
+							correctNegativeClassifications+=1;
+							stats.incrementTN();
+						}
+					}
+
 					// Train on unlabelled data if possible.
 					learner.trainOnInstance(testInst);
 				}
@@ -511,6 +667,9 @@ public class StreamAlgorithmTester  extends MOAClassifier implements I_WekaTest
 					learner.trainOnInstance(testInst);
 				}
 			}
+
+			double accuracy = 100.0 * (double) correct / (double) instanceNumber; 
+			log.dualOut(name+ " tested on " + instanceNumber + " instances & has "+accuracy+"% accuracy.",1);
 
 			long endTime = System.nanoTime();
 			long duration = endTime - startTime;
@@ -562,8 +721,8 @@ public class StreamAlgorithmTester  extends MOAClassifier implements I_WekaTest
 
 			long startTime = System.nanoTime();
 
-			learner.setModelContext (testStream.getHeader());
-			learner.prepareForUse();
+			//learner.setModelContext (testStream.getHeader());
+			//learner.prepareForUse();
 
 			// Predict over instances.
 			while ( testStream.hasMoreInstances() )

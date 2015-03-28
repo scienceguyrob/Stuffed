@@ -83,6 +83,11 @@ public class Sampler implements ISampler
 	 */
 	private final String NEGATIVE_META_DATA_EXT = ".negative.meta";
 	
+	/**
+	 * Flag that when true indicates that the file is loaded.
+	 */
+	public boolean loaded = false;
+	
 	//*****************************************
 	//*****************************************
 	//            Constructor
@@ -105,6 +110,11 @@ public class Sampler implements ISampler
 	//              Methods
 	//*****************************************
 	//*****************************************
+	
+	/* (non-Javadoc)
+	 * @see cs.man.ac.uk.sample.ISampler#isLoaded()
+	 */
+	public boolean isLoaded(){ return this.loaded; }
 	
 	/* (non-Javadoc)
 	 * @see cs.man.ac.uk.sample.ISampler#setLogPath(java.lang.String)
@@ -222,12 +232,14 @@ public class Sampler implements ISampler
 			if(extension.toLowerCase().contains(".csv"))
 			{
 				file = new CSV(this.path, this.classIndex, this.logPath,this.verbose);
-				return file.preprocess();
+				loaded = file.preprocess();
+				return loaded;
 			}
 			else if(extension.toLowerCase().contains(".arff"))
 			{
 				file = new ARFF(this.path, this.classIndex, this.logPath,this.verbose);
-				return file.preprocess();
+				loaded = file.preprocess();
+				return loaded;
 			}
 			else
 				return false;
@@ -240,14 +252,16 @@ public class Sampler implements ISampler
 				
 				boolean result1 = file.preprocess();
 				boolean result2 = file.createMetaData();
-				return result1 & result2;
+				loaded = result1 & result2;
+				return loaded;
 			}
 			else if(extension.toLowerCase().contains(".arff"))
 			{
 				file = new ARFF(this.path, this.classIndex, this.logPath,this.verbose);
 				boolean result1 = file.preprocess();
 				boolean result2 = file.createMetaData();
-				return result1 & result2;
+				loaded = result1 & result2;
+				return loaded;
 			}
 			else
 				return false;
@@ -292,6 +306,28 @@ public class Sampler implements ISampler
 			return file.shuffleDataset(outputPath);
 		else
 			return false;
+	}
+
+	/* (non-Javadoc)
+	 * @see cs.man.ac.uk.sample.ISampler#getPathToPositiveMetaData()
+	 */
+	@Override
+	public String getPathToPositiveMetaData() 
+	{
+		if(loaded)
+			return this.path.replace(extension, ".positive.meta");
+		return "";
+	}
+
+	/* (non-Javadoc)
+	 * @see cs.man.ac.uk.sample.ISampler#getPathToNegativeMetaData()
+	 */
+	@Override
+	public String getPathToNegativeMetaData()
+	{
+		if(loaded)
+			return this.path.replace(extension, ".negative.meta");
+		return "";
 	}
 
 }
