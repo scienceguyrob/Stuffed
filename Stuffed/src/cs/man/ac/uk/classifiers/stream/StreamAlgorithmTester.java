@@ -482,6 +482,9 @@ public class StreamAlgorithmTester  extends MOAClassifier implements I_WekaTest
 							stats.incrementTN();
 						}
 					}
+					
+					// Train on unlabelled data if possible.
+					learner.trainOnInstance(testInst);
 				}
 				else
 				{
