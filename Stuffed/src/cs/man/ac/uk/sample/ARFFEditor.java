@@ -79,6 +79,7 @@ public class ARFFEditor extends BaseEditor
 	public boolean sampleToCSV(String trainPath, String testPath, int negTrainSamples,
 			int posTrainSamples, double trainingSetBalance, double testSetBalance, double labelling)
 	{
+		String trueClassPath = testPath.replace(".arff",".trueClass.csv");
 		int N_tot = this.pfile.getClassDistribution()[0];
 		int P_tot = this.pfile.getClassDistribution()[1];
 		int MAX = P_tot + N_tot;
@@ -459,7 +460,7 @@ public class ARFFEditor extends BaseEditor
 								}
 
 								//Finally add this meta data to a file.
-								//Writer.append(positivesLocationPath, testSetCount+","+featuresString+","+classAlpha+"\n");
+								Writer.append(trueClassPath,testSetCount+"\n");
 							}
 							else if(N_test_indexes.containsKey(instanceIndex)) // Add negative to test set
 							{
@@ -483,8 +484,7 @@ public class ARFFEditor extends BaseEditor
 								}
 
 								//Finally add this meta data to a file if it is a DEFINATE NEGATIVE.
-								//if(negatives.containsKey(instanceIndex))
-								//Writer.append(negativesLocationPath, testSetCount+","+featuresString+","+classAlpha+"\n");
+								//Writer.append(trueClassPath,"0\n");
 							}
 						}
 
@@ -508,6 +508,7 @@ public class ARFFEditor extends BaseEditor
 					this.pfile.log("- in test set: "+ negInTestSet+ "\n");
 					this.pfile.log("Training set patterns: "+ trainingSetCount+ "\n");
 					this.pfile.log("Test set patterns: "+ testSetCount+ "\n");
+					this.pfile.log("Completed Sampling\n");
 
 					return true;
 				}
@@ -526,6 +527,8 @@ public class ARFFEditor extends BaseEditor
 	public boolean sampleToARFF(String trainPath, String testPath, int negTrainSamples,
 			int posTrainSamples, double trainingSetBalance, double testSetBalance, double labelling)
 	{
+		String trueClassPath = testPath.replace(".arff",".trueClass.csv");
+		
 		int N_tot = this.pfile.getClassDistribution()[0];
 		int P_tot = this.pfile.getClassDistribution()[1];
 		int MAX = P_tot + N_tot;
@@ -881,6 +884,7 @@ public class ARFFEditor extends BaseEditor
 
 								if(clazz.contains("0"))
 									this.pfile.log("1. Have negative, expecting positive.");
+								
 								Writer.append(trainingSetPath, outputString + ","+clazz+"\n");
 
 							}
@@ -888,6 +892,7 @@ public class ARFFEditor extends BaseEditor
 							{
 								negInTrainingSet +=1;
 								trainingSetCount +=1;
+								
 								if(clazz.contains("1"))
 									this.pfile.log("2. Have positive, expecting negative.");
 
@@ -915,7 +920,7 @@ public class ARFFEditor extends BaseEditor
 								}
 
 								//Finally add this meta data to a file.
-								//Writer.append(positivesLocationPath, testSetCount+","+featuresString+","+classAlpha+"\n");
+								Writer.append(trueClassPath,testSetCount+"\n");
 							}
 							else if(N_test_indexes.containsKey(instanceIndex)) // Add negative to test set
 							{
@@ -940,7 +945,7 @@ public class ARFFEditor extends BaseEditor
 
 								//Finally add this meta data to a file if it is a DEFINATE NEGATIVE.
 								//if(negatives.containsKey(instanceIndex))
-								//Writer.append(negativesLocationPath, testSetCount+","+featuresString+","+classAlpha+"\n");
+								//Writer.append(trueClassPath,"0\n");
 							}
 						}
 
@@ -964,6 +969,7 @@ public class ARFFEditor extends BaseEditor
 					this.pfile.log("- in test set: "+ negInTestSet+ "\n");
 					this.pfile.log("Training set patterns: "+ trainingSetCount+ "\n");
 					this.pfile.log("Test set patterns: "+ testSetCount+ "\n");
+					this.pfile.log("Completed Sampling\n");
 
 					return true;
 				}

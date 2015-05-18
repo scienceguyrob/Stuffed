@@ -48,21 +48,19 @@ public interface I_WekaTest
 	 * @param outputPath the path to write results to.
 	 * @param recrodMissclassifications a flag that when true, tells the classifier
 	 *        to record all the mistakes made on data for which there are labels.
-	 * @param posMetaData the positive meta data used to evaluate class predictions on unlabelled examples.
-	 * @param negMetaData the negative meta data used to evaluate class predictions on unlabelled examples.
+	 * @param truePosClass path to file containing line numbers of positive class examples.
 	 * @return confusion matrix describing binary classification outcomes.
 	 */
-	public int[][] testStatic(String testSet,String outputPath,boolean recrodMissclassifications,String posMetaData,String negMetaData);
+	public int[][] testStatic(String testSet,String outputPath,boolean recrodMissclassifications,String truePosClass);
 
 	/**
 	 * Tests the classifier, but does not learn on the test examples (static data set equivalent).
 	 * @param testSet the path to the test set.
 	 * @param outputPath the path to write results to.
-	 * @param posMetaData the positive meta data used to evaluate class predictions on unlabelled examples.
-	 * @param negMetaData the negative meta data used to evaluate class predictions on unlabelled examples.
+	 * @param truePosClass path to file containing line numbers of positive class examples.
 	 * @return the confusion matrix corresponding to classifier outputs.
 	 */
-	public int[][] testStatic(String testSet,String outputPath,String posMetaData,String negMetaData);
+	public int[][] testStatic(String testSet,String outputPath,String truePosClass);
 	
 	/**
 	 * Resets the classifier implementing this interface.

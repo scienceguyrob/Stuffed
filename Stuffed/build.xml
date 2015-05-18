@@ -65,7 +65,7 @@
 	<target name="compile" depends="clean, makedir">
 		<javac srcdir="${src.dir}" destdir="${build.dir}"
 			includeantruntime="false" source="1.5" target="1.5"
-			classpath="${resources.dir}/moa.jar:${resources.dir}/sizeofag.jar:${resources.dir}/weka.jar:${resources.dir}/GHVFDT.jar">
+			classpath="${resources.dir}/moa.jar:${resources.dir}/sizeofag.jar:${resources.dir}/weka.jar:${resources.dir}/GHVFDT.jar:${resources.dir}/PNB.jar:${resources.dir}/OCVFDT.jar">
 		</javac>
 	</target>
 
@@ -95,7 +95,7 @@
 			<zipfileset dir="${resources.dir}" includes="**/*.jar" prefix="lib" />
 			<manifest>
 				<attribute name="Main-Class" value="moa.gui.GUI" />
-				<attribute name="Class-Path" value="lib/moa.jar lib/sizeofag.jar lib/weka.jar lib/GHVFDT.jar"/>
+				<attribute name="Class-Path" value="lib/moa.jar lib/sizeofag.jar lib/weka.jar lib/GHVFDT.jar lib/PNB.jar lib/OCVFDT.jar"/>
 			</manifest>
 		</jar>
 	</target>

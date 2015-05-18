@@ -79,6 +79,8 @@ public class CSVEditor extends BaseEditor
 	public boolean sampleToCSV(String trainPath, String testPath, int negTrainSamples,
 			int posTrainSamples, double trainingSetBalance, double testSetBalance, double labelling)
 	{
+		String trueClassPath = testPath.replace(".arff",".trueClass.csv");
+		
 		int N_tot = this.pfile.getClassDistribution()[0];
 		int P_tot = this.pfile.getClassDistribution()[1];
 		int MAX = P_tot + N_tot;
@@ -459,7 +461,7 @@ public class CSVEditor extends BaseEditor
 								}
 
 								//Finally add this meta data to a file.
-								//Writer.append(positivesLocationPath, testSetCount+","+featuresString+","+classAlpha+"\n");
+								Writer.append(trueClassPath,testSetCount+"\n");
 							}
 							else if(N_test_indexes.containsKey(instanceIndex)) // Add negative to test set
 							{
@@ -484,7 +486,7 @@ public class CSVEditor extends BaseEditor
 
 								//Finally add this meta data to a file if it is a DEFINATE NEGATIVE.
 								//if(negatives.containsKey(instanceIndex))
-								//Writer.append(negativesLocationPath, testSetCount+","+featuresString+","+classAlpha+"\n");
+								//Writer.append(trueClassPath,"0\n");
 							}
 						}
 
@@ -508,7 +510,8 @@ public class CSVEditor extends BaseEditor
 					this.pfile.log("- in test set: "+ negInTestSet+ "\n");
 					this.pfile.log("Training set patterns: "+ trainingSetCount+ "\n");
 					this.pfile.log("Test set patterns: "+ testSetCount+ "\n");
-
+					this.pfile.log("Completed Sampling\n");
+					
 					return true;
 				}
 				catch(IOException e){this.pfile.log(e.toString());return false;}
@@ -526,6 +529,8 @@ public class CSVEditor extends BaseEditor
 	public boolean sampleToARFF(String trainPath, String testPath, int negTrainSamples,
 			int posTrainSamples, double trainingSetBalance, double testSetBalance, double labelling)
 	{
+		String trueClassPath = testPath.replace(".arff",".trueClass.csv");
+		
 		int N_tot = this.pfile.getClassDistribution()[0];
 		int P_tot = this.pfile.getClassDistribution()[1];
 		int MAX = P_tot + N_tot;
@@ -909,7 +914,7 @@ public class CSVEditor extends BaseEditor
 								}
 
 								//Finally add this meta data to a file.
-								//Writer.append(positivesLocationPath, testSetCount+","+featuresString+","+classAlpha+"\n");
+								Writer.append(trueClassPath,testSetCount+"\n");
 							}
 							else if(N_test_indexes.containsKey(instanceIndex)) // Add negative to test set
 							{
@@ -934,7 +939,7 @@ public class CSVEditor extends BaseEditor
 
 								//Finally add this meta data to a file if it is a DEFINATE NEGATIVE.
 								//if(negatives.containsKey(instanceIndex))
-								//Writer.append(negativesLocationPath, testSetCount+","+featuresString+","+classAlpha+"\n");
+								//Writer.append(trueClassPath,"0\n");
 							}
 						}
 
@@ -958,7 +963,8 @@ public class CSVEditor extends BaseEditor
 					this.pfile.log("- in test set: "+ negInTestSet+ "\n");
 					this.pfile.log("Training set patterns: "+ trainingSetCount+ "\n");
 					this.pfile.log("Test set patterns: "+ testSetCount+ "\n");
-
+					this.pfile.log("Completed Sampling\n");
+					
 					return true;
 				}
 				catch(IOException e){this.pfile.log(e.toString());return false;}

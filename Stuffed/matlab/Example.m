@@ -41,6 +41,9 @@ clear;
 	% Please modify these variables as appropriate.
 	root       = '/home/rob/workspace/Stuffed/';
 	jarFile1   =  strcat( root , 'dist/Stuffed.jar');
+	jarFile2   =  strcat( root , 'lib/GHVFDT.jar');
+    jarFile3   =  strcat( root , 'lib/weka.jar');
+    jarFile4   =  strcat( root , 'lib/moa.jar'); % Add more jar paths as appropriate.
 	logPath    =  strcat( root , 'dist/LogOutput.txt');
 	resultPath =  strcat( root , 'dist/ClassificationResults.txt');
 	
@@ -88,6 +91,9 @@ clear;
 	
 	% Add Java code to the Matlab class path.
 	javaaddpath(jarFile1);
+	javaaddpath(jarFile2);
+    javaaddpath(jarFile3);
+    javaaddpath(jarFile4);
 	
 	% Create a new sampling object.
 	sampler = cs.man.ac.uk.sample.Sampler(logPath,false);
@@ -140,7 +146,7 @@ clear;
             % ^
             % |
             % Predicted.
-            confusion_matrix = builder.test();
+            confusion_matrix = builder.test(sampler.getPathToPositiveMetaData(),sampler.getPathToNegativeMetaData());
             
             % Sums this results to those previously obtained.
             aggregate_confusion_matrix(1,1) = aggregate_confusion_matrix(1,1) + double(confusion_matrix(1,1));

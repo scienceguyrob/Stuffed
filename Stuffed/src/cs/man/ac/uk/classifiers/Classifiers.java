@@ -48,6 +48,8 @@ public class Classifiers
 	public static final int SVM = 4;
 	public static final int HTREE = 5;
 	public static final int GHVFDT = 6;
+	public static final int PNB = 7;
+	public static final int OCVFDT = 8;
 	
 	///*****************************************
 	//*****************************************
@@ -69,13 +71,17 @@ public class Classifiers
 			case 2:
 				return "MLP";
 			case 3:
-				return "NaiveBayes";
+				return "NB";
 			case 4:
 				return "SVM";
 			case 5:
 				return "HTREE";
 			case 6:
 				return "GHVFDT";
+			case 7:
+				return "PNB";
+			case 8:
+				return "OCVFDT";
 			default:
 				return "UNKNOWN";
 		}

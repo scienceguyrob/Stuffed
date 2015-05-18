@@ -79,7 +79,7 @@ public class Example
 
 		sat.train(trainingSet);
 
-		int[][] confusionMatrix = sat.testStatic(testSet, outputPath,null,null);
+		int[][] confusionMatrix = sat.testStatic(testSet, outputPath,null);
 
 		FormatCM.printConfusionMatrix(confusionMatrix);
 
@@ -91,7 +91,7 @@ public class Example
 		System.out.println(stats_1.toString());
 
 		// Standard static test, miss-classifications recorded in an ARFF file.
-		confusionMatrix = sat.testStatic(testSet, outputPath, recordMissclassifications,null,null);
+		confusionMatrix = sat.testStatic(testSet, outputPath, recordMissclassifications,null);
 		FormatCM.printConfusionMatrix(confusionMatrix);
 
 		// Make predictions over a set of examples, produces an output file.
@@ -125,7 +125,7 @@ public class Example
 
 		sat.train(trainingSet);
 
-		int[][] confusionMatrix = sat.testStatic(testSet, outputPath,null,null);
+		int[][] confusionMatrix = sat.testStatic(testSet, outputPath,null);
 
 		// Shows how to print this out.
 		FormatCM.printConfusionMatrix(confusionMatrix);
@@ -137,7 +137,7 @@ public class Example
 		System.out.println(stats_2.toString());
 
 		// Standard static test, miss-classifications recorded in an ARFF file
-		confusionMatrix = sat.testStatic(testSet, outputPath, recordMissclassifications,null,null);
+		confusionMatrix = sat.testStatic(testSet, outputPath, recordMissclassifications,null);
 		FormatCM.printConfusionMatrix(confusionMatrix);
 
 		// Make predictions over a set of examples, produces an output file.
@@ -213,7 +213,7 @@ public class Example
 
 		sat.train(trainSetPath);
 
-		int[][] confusionMatrix = sat.testStream(testSetPath, outputPath,s.getPathToPositiveMetaData(),s.getPathToNegativeMetaData());
+		int[][] confusionMatrix = sat.testStream(testSetPath, outputPath,testSetPath.replace(".arff",".trueClass.csv"));
 
 		FormatCM.printConfusionMatrix(confusionMatrix);
 

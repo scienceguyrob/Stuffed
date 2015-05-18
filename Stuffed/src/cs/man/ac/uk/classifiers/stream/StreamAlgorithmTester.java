@@ -171,7 +171,7 @@ public class StreamAlgorithmTester  extends MOAClassifier implements I_WekaTest
 	 */
 	@SuppressWarnings("unused")
 	@Override
-	public int[][] testStatic(String testSet,String outputPath, boolean recordMissclassifications,String posMetaData,String negMetaData)
+	public int[][] testStatic(String testSet,String outputPath, boolean recordMissclassifications,String truePosClass)
 	{
 		try
 		{
@@ -187,16 +187,11 @@ public class StreamAlgorithmTester  extends MOAClassifier implements I_WekaTest
 			 */
 			TreeMap<Integer,String> labelledNegatives;
 
-			if(posMetaData!= null)
-				labelledPositives = this.getMetaData(posMetaData);
+			if(truePosClass!= null)
+				labelledPositives = this.getPositiveMetaData(truePosClass);
 			else
 				labelledPositives = new TreeMap<Integer,String>();
 			
-			if(negMetaData!= null)
-				labelledNegatives = this.getMetaData(negMetaData);
-			else
-				labelledNegatives = new TreeMap<Integer,String>();
-
 			this.testStream = new ArffFileStream (this.testSetFilePath, -1);
 			this.testStream.prepareForUse();
 
@@ -256,21 +251,6 @@ public class StreamAlgorithmTester  extends MOAClassifier implements I_WekaTest
 						{
 							stats.incrementFN();
 							misclassifiedLabelledInstances.append(getFeatures(testInst,data.numAttributes()-1)+"1,FN\n");
-						}
-					}
-					// If the current instance is on the list of NEGATIVELY
-					// labelled examples.
-					else if(labelledNegatives.containsKey(instanceNumber))
-					{					
-						if(classification==1)
-						{
-							stats.incrementFP();
-							misclassifiedLabelledInstances.append(getFeatures(testInst,data.numAttributes()-1)+"0,FP\n");
-						}
-						else if(classification==0)
-						{
-							correctNegativeClassifications+=1;
-							stats.incrementTN();
 						}
 					}
 					else // THEN THIS DATA IS ALMOST CERTAINLY NEGATIVE.
@@ -361,7 +341,7 @@ public class StreamAlgorithmTester  extends MOAClassifier implements I_WekaTest
 	 */
 	@SuppressWarnings("unused")
 	@Override
-	public int[][] testStatic(String testSet,String outputPath,String posMetaData,String negMetaData)
+	public int[][] testStatic(String testSet,String outputPath,String truePosClass)
 	{
 		try
 		{
@@ -377,15 +357,10 @@ public class StreamAlgorithmTester  extends MOAClassifier implements I_WekaTest
 			 */
 			TreeMap<Integer,String> labelledNegatives;
 
-			if(posMetaData!= null)
-				labelledPositives = this.getMetaData(posMetaData);
+			if(truePosClass!= null)
+				labelledPositives = this.getPositiveMetaData(truePosClass);
 			else
 				labelledPositives = new TreeMap<Integer,String>();
-			
-			if(negMetaData!= null)
-				labelledNegatives = this.getMetaData(negMetaData);
-			else
-				labelledNegatives = new TreeMap<Integer,String>();
 
 			this.testStream = new ArffFileStream (this.testSetFilePath, -1);
 			this.testStream.prepareForUse();
@@ -444,20 +419,6 @@ public class StreamAlgorithmTester  extends MOAClassifier implements I_WekaTest
 						else if(classification==0)
 						{
 							stats.incrementFN();
-						}
-					}
-					// If the current instance is on the list of NEGATIVELY
-					// labelled examples.
-					else if(labelledNegatives.containsKey(instanceNumber))
-					{					
-						if(classification==1)
-						{
-							stats.incrementFP();
-						}
-						else if(classification==0)
-						{
-							correctNegativeClassifications+=1;
-							stats.incrementTN();
 						}
 					}
 					else // THEN THIS DATA IS ALMOST CERTAINLY NEGATIVE.
@@ -523,12 +484,11 @@ public class StreamAlgorithmTester  extends MOAClassifier implements I_WekaTest
 	 * 
 	 * @param testSet the test set file to be used as a stream.
 	 * @param outputPath the file to write logging statements to.
-	 * @param posMetaData the positive meta data used to evaluate class predictions on unlabelled examples.
-	 * @param negMetaData the negative meta data used to evaluate class predictions on unlabelled examples.
+	 * @param truePosClass the positive meta data.
 	 * @return a confusion matrix describing classifier performance.
 	 */
 	@SuppressWarnings("unused")
-	public int[][] testStream(String testSet,String outputPath,String posMetaData,String negMetaData)
+	public int[][] testStream(String testSet,String outputPath,String truePosClass)
 	{
 		try
 		{
@@ -544,15 +504,10 @@ public class StreamAlgorithmTester  extends MOAClassifier implements I_WekaTest
 			 */
 			TreeMap<Integer,String> labelledNegatives;
 
-			if(posMetaData!= null)
-				labelledPositives = this.getMetaData(posMetaData);
+			if(truePosClass!= null)
+				labelledPositives = this.getPositiveMetaData(truePosClass);
 			else
 				labelledPositives = new TreeMap<Integer,String>();
-			
-			if(negMetaData!= null)
-				labelledNegatives = this.getMetaData(negMetaData);
-			else
-				labelledNegatives = new TreeMap<Integer,String>();
 
 			this.testStream = new ArffFileStream (this.testSetFilePath, -1);
 			this.testStream.prepareForUse();
@@ -612,20 +567,6 @@ public class StreamAlgorithmTester  extends MOAClassifier implements I_WekaTest
 						else if(classification==0)
 						{
 							stats.incrementFN();
-						}
-					}
-					// If the current instance is on the list of NEGATIVELY
-					// labelled examples.
-					else if(labelledNegatives.containsKey(instanceNumber))
-					{					
-						if(classification==1)
-						{
-							stats.incrementFP();
-						}
-						else if(classification==0)
-						{
-							correctNegativeClassifications+=1;
-							stats.incrementTN();
 						}
 					}
 					else // THEN THIS DATA IS ALMOST CERTAINLY NEGATIVE.

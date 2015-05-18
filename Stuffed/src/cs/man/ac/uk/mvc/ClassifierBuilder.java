@@ -31,8 +31,11 @@
  */
 package cs.man.ac.uk.mvc;
 
+import moa.classifiers.AbstractClassifier;
+import moa.classifiers.bayes.PNB;
 import moa.classifiers.trees.GHVFDT;
 import moa.classifiers.trees.HoeffdingTree;
+import moa.classifiers.trees.OCVFDT;
 import weka.classifiers.trees.J48;
 import weka.classifiers.functions.MultilayerPerceptron;
 import weka.classifiers.bayes.NaiveBayes;
@@ -133,26 +136,77 @@ public class ClassifierBuilder
 	/**
 	 * Builds and tests the classifier specified by the algorithm variable.
 	 * Note if no unlabelled data is in the test set, then meta data can be set to null.
-	 * @param posMetaData the positive meta data used to evaluate class predictions on unlabelled examples.
-	 * @param negMetaData the negative meta data used to evaluate class predictions on unlabelled examples.
 	 * @return confusion matrix describing binary classification outcomes.
 	 */
-	public  int[][] test(String posMetaData,String negMetaData)
+	public  int[][] test()
 	{
 		switch (algorithm)
 		{
 			case Classifiers.J48:
-				return stdloadAndTest(new StandardAlgorithmTester(this.outputFile,"J48",this.verbose,new J48()),posMetaData,negMetaData); 
+				return stdloadAndTest(new StandardAlgorithmTester(this.outputFile,"J48",this.verbose,new J48())); 
 			case Classifiers.MLP:
-				return stdloadAndTest(new StandardAlgorithmTester(this.outputFile,"MLP",this.verbose,new MultilayerPerceptron()),posMetaData,negMetaData); 
+				return stdloadAndTest(new StandardAlgorithmTester(this.outputFile,"MLP",this.verbose,new MultilayerPerceptron())); 
 			case Classifiers.NB:
-				return stdloadAndTest(new StandardAlgorithmTester(this.outputFile,"NB",this.verbose,new NaiveBayes()),posMetaData,negMetaData); 
+				return stdloadAndTest(new StandardAlgorithmTester(this.outputFile,"NB",this.verbose,new NaiveBayes())); 
 			case Classifiers.SVM:
-				return stdloadAndTest(new StandardAlgorithmTester(this.outputFile,"SVM",this.verbose,new SMO()),posMetaData,negMetaData); 
+				return stdloadAndTest(new StandardAlgorithmTester(this.outputFile,"SVM",this.verbose,new SMO())); 
 			case Classifiers.HTREE:
-				return streamloadAndTest(new StreamAlgorithmTester(this.outputFile,"HoeffdingTree",this.verbose,new HoeffdingTree()),posMetaData,negMetaData);
+				return streamloadAndTest(new StreamAlgorithmTester(this.outputFile,"HTREE",this.verbose,new HoeffdingTree()));
 			case Classifiers.GHVFDT:
-				return streamloadAndTest(new StreamAlgorithmTester(this.outputFile,"GHVFDT",this.verbose,new GHVFDT()),posMetaData,negMetaData);  
+				return streamloadAndTest(new StreamAlgorithmTester(this.outputFile,"GHVFDT",this.verbose,new GHVFDT()));
+			case Classifiers.PNB:
+				return streamloadAndTest(new StreamAlgorithmTester(this.outputFile,"PNB",this.verbose,new PNB()));  
+			case Classifiers.OCVFDT:
+				return streamloadAndTest(new StreamAlgorithmTester(this.outputFile,"OCVFDT",this.verbose,new OCVFDT()));  
+			default:
+				int[][] confusion_matrix = {{0,0},{0,0}};
+				return confusion_matrix;
+		}
+	}
+	
+	/**
+	 * Builds and tests the classifier specified by the algorithm variable.
+	 * Note if no unlabelled data is in the test set, then meta data can be set to null.
+	 * Only for stream classifiers, no pre-training undertaken.
+	 * @return confusion matrix describing binary classification outcomes.
+	 */
+	public  int[][] testNoTrain()
+	{
+		switch (algorithm)
+		{
+			case Classifiers.HTREE:
+				return streamTest(new StreamAlgorithmTester(this.outputFile,"HTree",this.verbose,new HoeffdingTree()));
+			case Classifiers.GHVFDT:
+				return streamTest(new StreamAlgorithmTester(this.outputFile,"GHVFDT",this.verbose,new GHVFDT()));
+			case Classifiers.PNB:
+				return streamTest(new StreamAlgorithmTester(this.outputFile,"PNB",this.verbose,new PNB()));  
+			case Classifiers.OCVFDT:
+				return streamTest(new StreamAlgorithmTester(this.outputFile,"OCVFDT",this.verbose,new OCVFDT()));  
+			default:
+				int[][] confusion_matrix = {{0,0},{0,0}};
+				return confusion_matrix;
+		}
+	}
+	
+	/**
+	 * Tests the supplied classifier specified by the algorithm variable.
+	 * Note if no unlabelled data is in the test set, then meta data can be set to null.
+	 * Only for stream classifiers, no pre-training undertaken.
+	 * @param c the classifier to use for testing.
+	 * @return confusion matrix describing binary classification outcomes.
+	 */
+	public  int[][] testNoTrain(AbstractClassifier c)
+	{
+		switch (algorithm)
+		{
+			case Classifiers.HTREE:
+				return streamTest(new StreamAlgorithmTester(this.outputFile,"HTREE",this.verbose,c));
+			case Classifiers.GHVFDT:
+				return streamTest(new StreamAlgorithmTester(this.outputFile,"GHVFDT",this.verbose,c));
+			case Classifiers.PNB:
+				return streamTest(new StreamAlgorithmTester(this.outputFile,"PNB",this.verbose,c));  
+			case Classifiers.OCVFDT:
+				return streamTest(new StreamAlgorithmTester(this.outputFile,"OCVFDT",this.verbose,c));  
 			default:
 				int[][] confusion_matrix = {{0,0},{0,0}};
 				return confusion_matrix;
@@ -162,15 +216,13 @@ public class ClassifierBuilder
 	/**
 	 * Trains and tests the supplied classifier, standard static learning scenario.
 	 * @param classifier the classifier to train and test.
-	 * @param posMetaData the positive meta data used to evaluate class predictions on unlabelled examples.
-	 * @param negMetaData the negative meta data used to evaluate class predictions on unlabelled examples.
 	 * @return true if trained and tested successfully, else false.
 	 */
-	private int[][] stdloadAndTest(StandardAlgorithmTester classifier,String posMetaData,String negMetaData)
+	private int[][] stdloadAndTest(StandardAlgorithmTester classifier)
 	{
 		classifier.train(trainingSet);
 		
-		int[][] confusionMatrix = classifier.testStatic(testSet,this.outputFile,posMetaData,negMetaData);
+		int[][] confusionMatrix = classifier.testStatic(testSet,this.outputFile,testSet.replace(".arff",".trueClass.csv"));
 		
 		return confusionMatrix;
 	}
@@ -178,15 +230,25 @@ public class ClassifierBuilder
 	/**
 	 * Trains and tests the supplied classifier, in a streaming data scenario.
 	 * @param classifier the classifier to train and test.
-	 * @param posMetaData the positive meta data used to evaluate class predictions on unlabelled examples.
-	 * @param negMetaData the negative meta data used to evaluate class predictions on unlabelled examples.
 	 * @return true if trained and tested successfully, else false.
 	 */
-	private int[][] streamloadAndTest(StreamAlgorithmTester classifier,String posMetaData,String negMetaData)
+	private int[][] streamloadAndTest(StreamAlgorithmTester classifier)
 	{
 		classifier.train(trainingSet);
 		
-		int[][] confusionMatrix = classifier.testStream(testSet,this.outputFile,posMetaData,negMetaData);
+		int[][] confusionMatrix = classifier.testStream(testSet,this.outputFile,testSet.replace(".arff",".trueClass.csv"));
+		
+		return confusionMatrix;
+	}
+	
+	/**
+	 * Tests the supplied classifier (no pre-training), in a streaming data scenario.
+	 * @param classifier the classifier to train and test.
+	 * @return true if trained and tested successfully, else false.
+	 */
+	private int[][] streamTest(StreamAlgorithmTester classifier)
+	{
+		int[][] confusionMatrix = classifier.testStream(testSet,this.outputFile,testSet.replace(".arff",".trueClass.csv"));
 		
 		return confusionMatrix;
 	}
